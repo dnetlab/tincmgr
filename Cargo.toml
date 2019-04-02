@@ -1,0 +1,21 @@
+[package]
+name = "tincmgr"
+version = "0.1.0"
+authors = ["bowen.yan <bowen.yan@siteview.com>"]
+edition = "2018"
+
+[[bin]]
+path = "./src/bin/main.rs"
+name = "tincmgr"
+
+[dependencies]
+chrono = "0.4.6"
+clap = "2.25"
+error-chain = "0.12"
+fern = { version = "0.5", features = ["colored"] }
+log = "0.4.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = "0.1"
+futures = "0.1"
+derive-try-from-primitive = "0.1.0"
