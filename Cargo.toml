@@ -1,6 +1,6 @@
 [package]
 name = "tincmgr"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["bowen.yan <bowen.yan@siteview.com>"]
 edition = "2018"
 
@@ -9,6 +9,8 @@ path = "./src/bin/main.rs"
 name = "tincmgr"
 
 [dependencies]
+actix-web = "1.0.0-alpha.2"
+actix-files = "0.1.0-alpha.1"
 chrono = "0.4.6"
 clap = "2.25"
 error-chain = "0.12"

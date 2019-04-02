@@ -14,3 +14,4 @@ pub mod tinc_tcp_stream;
 pub mod control;
 pub mod logging;
 pub mod domain;
+pub mod web_server;
