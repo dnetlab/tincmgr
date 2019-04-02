@@ -166,22 +166,10 @@ fn get_data(pid_path: &str) -> Result<String> {
                         }
                         break;
                     }
-                    else {
-                        error!("Error: serde_json data");
-                    }
-                }
-                else {
-                    error!("Error: dump_subnets");
                 }
             }
-            else {
-                error!("Error: dump_edges");
-            }
         }
-        else {
-            error!("Error: dump_nodes");
-        }
-        sleep(Duration::from_millis(1000))
+        sleep(Duration::from_millis(1000));
     }
     Ok(_data_str)
 }
