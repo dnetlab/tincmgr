@@ -64,7 +64,7 @@ fn main() {
         }
     };
     debug!("Process exiting with code {}", exit_code);
-    ::std::process::exit(exit_code);
+    std::process::exit(exit_code);
 }
 
 fn run() -> Result<()> {
@@ -116,7 +116,7 @@ fn run() -> Result<()> {
                 _ if log_level == "3" => log::LevelFilter::Info,
                 _ if log_level == "4" => log::LevelFilter::Debug,
                 _ if log_level == "4" => log::LevelFilter::Trace,
-                _  => log::LevelFilter::Error,
+                _  => log::LevelFilter::Debug,
             }
         }
         None => log::LevelFilter::Error,
@@ -139,26 +139,45 @@ fn run() -> Result<()> {
         true,
     ).chain_err(|| ErrorKind::LogError("Unable to initialize logger"))?;
 
-    let port = port.to_owned();
+    let port_str = port.to_string();
 
     let data_dir = env::current_dir().unwrap().to_str().unwrap().to_owned();
     let data_dir = data_dir.to_string() + "/www/";
-    let data_dir_clone = data_dir.clone();
-    spawn(move||web_server(&port, &data_dir_clone));
+    let data_dir_clone1 = data_dir.clone();
 
-    main_loop(pidfile, &data_dir)?;
+    let handle_web_server = spawn(move || web_server(&port_str, &data_dir_clone1));
+
+    let data_dir_clone2 = data_dir.clone();
+    let pidfile = pidfile.to_string();
+    let handle_main_loop = spawn(move || main_loop(&pidfile, &data_dir_clone2));
+
+    handle_main_loop.join().unwrap();
+    handle_web_server.join().unwrap();
+
     Ok(())
 }
 
 fn main_loop(
-    pidfile:    &str,
+    pidfile:     &str,
     data_dir:    &str,
 ) -> Result<()> {
     let data_file = data_dir.to_string() + "data/nodes.json";
     loop {
         debug!("Start fresh.");
-        let data = get_data(pidfile)?;
-        write_json(&data_file, data)?;
+        let data = match get_data(pidfile) {
+            Ok(data) => data,
+            Err(e) => {
+                error!("{:?}", e);
+                std::process::exit(1);
+            }
+        };
+        let _ = match write_json(&data_file, data) {
+            Ok(data) => data,
+            Err(e) => {
+                error!("{:?}", e);
+                std::process::exit(1);
+            }
+        };
         debug!("Finnish fresh.");
         sleep(Duration::from_millis(20000));
     }

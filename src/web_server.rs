@@ -1,4 +1,4 @@
-use actix_files as fs;
+use actix_files;
 use actix_web::{middleware, App, HttpServer};
 
 pub fn web_server(port: &str, data_dir: &str) -> std::io::Result<()> {
@@ -8,9 +8,9 @@ pub fn web_server(port: &str, data_dir: &str) -> std::io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .service(
-                fs::Files::new("/", data_dir_clone).index_file("index.html"),
+                actix_files::Files::new("/", data_dir_clone).index_file("index.html"),
             )
     })
-        .bind("127.0.0.1:".to_string() + port)?
+        .bind("0.0.0.0:".to_string() + port)?
         .run()
 }

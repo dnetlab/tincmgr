@@ -4,6 +4,7 @@ use std::net::SocketAddr;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Result, Read};
 use std::time::Duration;
+use std::str::FromStr;
 
 #[repr(i8)]
 pub enum  Request {
@@ -37,23 +38,23 @@ pub enum  Request {
 
 #[repr(i8)]
 pub enum RequestType {
-    ReqInvalid              = -1,
-    ReqStop                 = 0,
-    ReqReload               = 1,
-    ReqRestart              = 2,
-    ReqDumpNodes            = 3,
-    ReqDumpEdges            = 4,
-    ReqDumpSubnets          = 5,
-    ReqDumpConnections      = 6,
-    ReqDumpGraph            = 7,
-    ReqPurge                = 8,
-    ReqSetDebug             = 9,
-    ReqRetry                = 10,
-    ReqConnect              = 11,
-    ReqDisconnect           = 12,
-    ReqDumpTraffic          = 13,
-    ReqPcap                 = 14,
-    ReqLog                  = 15,
+    ReqInvalid               = -1,
+    ReqStop                  = 0,
+    ReqReload                = 1,
+    ReqRestart               = 2,
+    ReqDumpNodes             = 3,
+    ReqDumpEdges             = 4,
+    ReqDumpSubnets           = 5,
+    ReqDumpConnections       = 6,
+    ReqDumpGraph             = 7,
+    ReqPurge                 = 8,
+    ReqSetDebug              = 9,
+    ReqRetry                 = 10,
+    ReqConnect               = 11,
+    ReqDisconnect            = 12,
+    ReqDumpTraffic           = 13,
+    ReqPcap                  = 14,
+    ReqLog                   = 15,
 }
 
 pub struct TincStream {
@@ -61,11 +62,14 @@ pub struct TincStream {
 }
 impl TincStream {
     pub fn new(pid_path: &str) -> Result<Self> {
-        let control_cookie = Self::parse_control_cookie(pid_path)?;
+        let (control_cookie, tinc_ip, tinc_port) = Self::parse_control_cookie(pid_path)?;
         let buf = format!("{} ^{} {}\n", 0, control_cookie, 17);
-        let addr = SocketAddr::from(([127, 0, 0, 1], 50069));
+        let addr = SocketAddr::from_str(&(tinc_ip + ":" + &tinc_port))
+            .map_err(|_|ErrorKind::InvalidData)?;
+
         let stream = TcpStream::connect(&addr)?;
         let _ = stream.set_read_timeout(Some(Duration::from_millis(400)));
+
         let mut tinc_stream = TincStream{stream};
         tinc_stream.send_line(buf.as_bytes())?;
         let _res = tinc_stream.recv()?;
@@ -77,13 +81,24 @@ impl TincStream {
         return Ok(());
     }
 
-    fn parse_control_cookie(path: &str) -> Result<String> {
+    fn parse_control_cookie(path: &str) -> Result<(String, String, String)> {
         let mut file = File::open(path)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         let iter: Vec<&str> = contents.split_whitespace().collect();
         let control_cookie = iter[1];
-        return Ok(control_cookie.to_string());
+
+        let mut _tinc_ip: &str = "";
+        let mut _tinc_port: &str = "";
+        if iter.len() < 3 {
+            error!("Tinc pid file, not find port setting. Maybe tinc tcp port never be set");
+            return Err(Error::new(ErrorKind::InvalidData, "Tinc pid file, not find port setting. Maybe tinc tcp port never be set"));
+        }
+        else if iter.len() >= 5 {
+            _tinc_ip = iter[2];
+            _tinc_port = iter[4];
+        }
+        return Ok((control_cookie.to_string(), _tinc_ip.to_string(), _tinc_port.to_string()));
     }
 
     pub fn stop(&mut self) -> Result<()> {
