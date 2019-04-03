@@ -9,8 +9,7 @@ path = "./src/bin/main.rs"
 name = "tincmgr"
 
 [dependencies]
-actix-web = "1.0.0-alpha.2"
-actix-files = "0.1.0-alpha.1"
+actix-web = "0.7"
 chrono = "0.4.6"
 clap = "2.25"
 error-chain = "0.12"
