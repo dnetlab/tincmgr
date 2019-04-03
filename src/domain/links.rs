@@ -73,6 +73,14 @@ impl Link {
             else {
                 links_hash.insert(link.sname.clone(), 1);
             }
+            if links_hash.contains_key(&link.tname) {
+                let mut num = links_hash[&link.tname];
+                num += 1;
+                links_hash.insert(link.tname.clone(), num);
+            }
+            else {
+                links_hash.insert(link.tname.clone(), 1);
+            }
         }
         for mut node in nodes_info {
             if links_hash.contains_key(&node.name) {
