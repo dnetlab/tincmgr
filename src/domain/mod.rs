@@ -8,10 +8,31 @@ use crate::tinc_tcp_stream::{SourceEdge, SourceSubnet, SourceNode};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Data {
+    result:     Option<String>,
+    err:        Option<String>,
+    code:       u32,
+}
+impl Data {
+    pub fn new(
+        res:        Option<String>,
+        err:        Option<String>,
+        code:       u32,
+    ) -> Self {
+
+        Self {
+            result: res,
+            err,
+            code,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TincDump {
     nodes: Vec<Node>,
     links: Vec<Link>
 }
-impl Data {
+impl TincDump {
     pub fn new (
         source_nodes:       Vec<SourceNode>,
         source_subnets:     Vec<SourceSubnet>,
@@ -19,7 +40,7 @@ impl Data {
     ) -> Self {
         let mut nodes = Node::load_nodes(source_nodes, source_subnets);
         let links = Link::load_links(source_edge, &mut nodes);
-        let mut data = Data {
+        let mut data = TincDump {
             nodes,
             links,
         };
