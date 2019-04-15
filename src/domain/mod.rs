@@ -8,13 +8,13 @@ use crate::tinc_tcp_stream::{SourceEdge, SourceSubnet, SourceNode};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Data {
-    result:     Option<String>,
+    result:     Option<TincDump>,
     err:        Option<String>,
     code:       u32,
 }
 impl Data {
     pub fn new(
-        res:        Option<String>,
+        res:        Option<TincDump>,
         err:        Option<String>,
         code:       u32,
     ) -> Self {

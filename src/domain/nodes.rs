@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::Result;
 use crate::tinc_tcp_stream::{SourceNode, SourceSubnet};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -14,21 +13,28 @@ pub struct Node {
     pub id:         u32,
 }
 impl Node {
-    fn from(source_node: &SourceNode) -> Result<Self> {
+    // 解析源节点信息, 生成输出节点
+    fn from(source_node: &SourceNode) -> Option<Self> {
         let status_int:i32 = hex_str_to_dec(&source_node.status_int) as i32;
+        let reachable = status_int >> 4 & 1;
 
-        Ok(Node {
-            index: 0,
-            edges: 0,
-            reachable: status_int >> 4 & 1,
-            version: 0,
-            name: source_node.node.clone(),
-            group: 0,
-            nets: vec![],
-            id: 0,
-        })
+        // pure 分支忽略reachable为0 的节点.
+        if reachable != 0 {
+            return Some(Node {
+                index: 0,
+                edges: 0,
+                reachable,
+                version: 0,
+                name: source_node.node.clone(),
+                group: 0,
+                nets: vec![],
+                id: 0,
+            });
+        }
+        None
     }
 
+    // 分解VEC源节点信息  调用Node::from
     pub fn load_nodes(
         source_nodes: Vec<SourceNode>,
         source_subnets: Vec<SourceSubnet>
@@ -50,7 +56,7 @@ impl Node {
 
         let mut index = 0;
         for source_node in source_nodes {
-            if let Ok(mut node) = Self::from(&source_node) {
+            if let Some(mut node) = Self::from(&source_node) {
                 index += 1;
                 node.id = index;
                 node.index = index;

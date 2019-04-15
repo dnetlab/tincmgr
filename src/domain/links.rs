@@ -1,3 +1,5 @@
+/// 解析tinc dump 边信息(SourceEdge)
+
 use std::collections::HashMap;
 
 use crate::tinc_tcp_stream::SourceEdge;
@@ -37,18 +39,21 @@ impl Link {
             }
             reachable = 1;
         }
-
-        let _hash = format!("{}-{}", source, target);
-        Some(Link {
-            sname:  source_edge.from,
-            tname:  source_edge.to,
-            frac:   0.0,
-            target,
-            weight,
-            source,
-            reachable,
-            _hash,
-        })
+        // pure 分支忽略reachable为0 的连接.
+        if reachable != 0 {
+            let _hash = format!("{}-{}", source, target);
+            return Some(Link {
+                sname: source_edge.from,
+                tname: source_edge.to,
+                frac: 0.0,
+                target,
+                weight,
+                source,
+                reachable,
+                _hash,
+            });
+        }
+        None
     }
 
     pub fn load_links(source_edges: Vec<SourceEdge>, nodes_info: &mut Vec<Node>) -> Vec<Link> {
